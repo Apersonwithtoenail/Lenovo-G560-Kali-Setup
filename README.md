@@ -1,79 +1,70 @@
-# The Legendary Lenovo G560 — Ultimate Hacker Setup & War Log
+# Lenovo G560: Dual-Screen Linux Workstation
 
-> *Proof that you do not need a $2,000 MacBook. You just need a 14-year-old laptop, a half-dead HDMI cable, and a lot of patience.*
+## Overview
+This repository documents the configuration, automation, and troubleshooting required to transform a legacy 2010 Lenovo G560 laptop into a fully functional dual-screen development workstation running Kali Linux (XFCE) with an extended 1080p external display.
 
-This repository documents the complete, chaotic journey of turning a **2010 Lenovo G560** into a fully functional dual-screen Kali Linux workstation, including every hardware failure, driver bug, and terminal workaround discovered along the way.
+## Hardware Specifications
+*   **Laptop:** Lenovo G560 (2010)
+*   **Processor:** Intel Pentium P6200 (Dual-Core, 2.13 GHz)
+*   **Memory:** 3.6 GB DDR3
+*   **Graphics:** Intel HD Graphics (Integrated)
+*   **Operating System:** Kali Linux (XFCE Desktop)
+*   **External Display:** Lloyd Smart TV AF01 (2016) - 1080p via HDMI
 
-## 💻 The Hardware (The \"Potato\")
-*   **Laptop:** Lenovo G560 (Circa 2010)
-*   **CPU:** Intel Pentium P6200 (Dual-Core, 2.13 GHz)
-*   **RAM:** 3.6 GB DDR3
-*   **GPU:** Intel HD Graphics (Integrated)
-*   **OS:** Kali Linux (XFCE Desktop)
-*   **External Display:** Lloyd Smart TV AF01 (2016) — 1080p
-*   **Peripherals:** Airtel Set-Top Box, Earphones
+## Technical Troubleshooting & Resolutions
 
----
+### 1. Browser Initialization Failure (GTK Modules)
+*   **Issue:** Chromium-based browsers (e.g., Brave Origin) crashed instantly upon launch. Logs indicated a SIGTRAP in the `chrome_crashpad_handler` and missing GTK modules (`colorreload-gtk-module`).
+*   **Resolution:** The GTK configuration contained residual module calls from a previous KDE environment. Commented out the invalid `gtk-modules` entry in `~/.config/gtk-3.0/settings.ini`. Migrated user data to a stable browser release as a secondary measure.
 
-## 🛠️ The Troubleshooting War Log (Chronological)
+### 2. Python Virtual Environment Conflicts
+*   **Issue:** GUI applications utilizing Python GTK bindings failed to launch with `ModuleNotFoundError: No module named 'gi'`.
+*   **Resolution:** The system was defaulting to an active Python Virtual Environment that lacked system-level GTK libraries. Modified all application launch scripts to explicitly invoke the system Python interpreter (`/usr/bin/python3`), bypassing the venv.
 
-### 1. The Browser War: Brave Origin vs. GTK
-*   **Problem:** `brave-origin-nightly` would crash instantly on launch, flashing a window in the taskbar and then dying. The crash log showed a SIGTRAP in `chrome_crashpad_handler`. The TV also had GTK module errors: `Failed to load module \"colorreload-gtk-module\"`.
-*   **Cause:** The GTK modules were leftover from a KDE installation. Chromium-based browsers hate missing GTK modules.
-*   **Fix:** Commented out the broken `gtk-modules` line in `~/.config/gtk-3.0/settings.ini` and installed regular `brave-browser` as a reliable fallback. Migrated all bookmarks, passwords, and cookies manually via `~/.config/BraveSoftware/`.
+### 3. Terminal Hang on Large Paste (Shell Escaping)
+*   **Issue:** Pasting large code blocks (Markdown or Bash) into the terminal resulted in a hang at the `>` continuation prompt.
+*   **Resolution:** The shell was interpreting unescaped backticks and quotes as command substitutions, breaking `cat << EOF` heredocs. Switched to using Base64 encoding or Python one-liners (`python3 -c`) with `chr(96)` for safe file generation.
 
-### 2. The Python Venv Trap
-*   **Problem:** Running apps or scripts suddenly threw `ModuleNotFoundError: No module named 'gi'`. Terminal commands for GTK apps completely broke.
-*   **Cause:** An active Python Virtual Environment (`.venv`) was overriding the system Python, which didn't have the GTK bindings installed.
-*   **Fix:** Removed the old Bash alias activating the venv. Rewrote app launchers (`install.sh` scripts) to explicitly pin the system Python (`/usr/bin/python3`) so venvs can never break the GUI apps again.
+### 4. HDMI Video Signal Failure
+*   **Issue:** The external display remained black despite `xrandr` reporting `HDMI-1 connected`.
+*   **Resolution:** Diagnostic testing revealed the legacy HDMI cable had functional EDID (data) pins but broken TMDS (video) pins. Replaced the cable to restore the video signal.
 
-### 3. The Terminal Hang (Backtick & Heredoc Trap)
-*   **Problem:** Pasting large blocks of code or markdown into Konsole caused the terminal to freeze at the `>` prompt.
-*   **Cause:** Backticks (`), single quotes ('), and apostrophes in the pasted text were being interpreted by Bash as command substitutions, breaking the `cat << EOF` heredoc.
-*   **Fix:** Switched to using Base64 encoding for complex strings, or Python one-liners (`python3 -c`) with `chr(96)` to safely generate text files without the shell panicking.
+### 5. Display Overscan (Scaling Issue)
+*   **Issue:** The 1080p output was zoomed in, cropping the desktop environment and taskbar.
+*   **Resolution:** The TV was applying default overscan. Changed the television's hardware Aspect Ratio setting from `16:9` to `Just Scan` (Screen Fit).
 
-### 4. The Half-Dead HDMI Cable
-*   **Problem:** Connected the laptop to the TV, but the screen stayed permanently black. `xrandr` showed `HDMI-1 connected`.
-*   **Cause:** The old Airtel HDMI cable had broken TMDS (video) pins, but functional EDID (data) pins. The laptop saw the TV's name and resolution, but the video signal was dying in the cable.
-*   **Fix:** Replaced the old Airtel cable with a fresh, short HDMI cable.
+### 6. X11 Virtual Canvas Limit (BadMatch Error)
+*   **Issue:** Forcing a side-by-side display layout via `xrandr` triggered a `BadMatch` error.
+*   **Resolution:** The legacy Intel GPU lacked the memory to create a virtual canvas combining a 1366x768 and 1920x1080 display (3286x1080). Used the XFCE Display GUI (`xfce4-display-settings`) to configure the layout, which safely reallocated the X11 canvas.
 
-### 5. The Overscan (Zoomed) Nightmare
-*   **Problem:** The 1080p TV image was horribly zoomed in, cutting off the taskbar and edges.
-*   **Cause:** TVs automatically zoom in on HDMI inputs to hide broadcast static (Overscan).
-*   **Fix:** Used the TV remote to change the Aspect Ratio from `16:9` to **`Just Scan`** (or `Screen Fit`).
-
-### 6. The X11 BadMatch Error
-*   **Problem:** Running `xrandr` to extend the laptop (1366x768) and TV (1080p) side-by-side threw a `BadMatch` error.
-*   **Cause:** The 2010 Intel GPU ran out of virtual canvas memory trying to create a 3286x1080 desktop.
-*   **Fix:** Used the XFCE Display GUI (`xfce4-display-settings`) to configure the layout, which reallocated the X11 canvas safely.
-
-### 7. The Missing Taskbar & Audio
-*   **Problem:** The taskbar stayed on the laptop, and audio kept routing to the laptop speakers even though the TV was connected.
-*   **Fix:** 
-    *   **Taskbar:** Right-clicked Panel -> Panel Preferences -> Display -> Changed Output to `HDMI-1`.
-    *   **Audio:** The 2010 Lenovo refused to activate the HDMI audio chip by default. Added `options snd-hda-intel model=auto` to `/etc/modprobe.d/alsa-base.conf` and rebooted.
+### 7. HDMI Audio Routing
+*   **Issue:** Audio defaulted to the laptop speakers. The `pactl` utility reported no HDMI sinks available.
+*   **Resolution:** Added `options snd-hda-intel model=auto` to `/etc/modprobe.d/alsa-base.conf` to force the kernel to detect the legacy HDMI audio chip. Rebooted to apply the module configuration.
 
 ---
 
-## 📜 The Automation Scripts
+## Automation Scripts
 
 ### 1. `dual-screen.sh`
-Unplugging the HDMI cable resets the layout. This script forces the laptop to 1366x768, the TV to 1080p, and routes the audio.
+Automates the extended display configuration and audio routing upon connecting the external monitor.
 
 ```bash
 #!/bin/bash
+# Configure display layout
 xrandr --output LVDS-1 --mode 1366x768 --pos 0x0 --output HDMI-1 --mode 1920x1080 --pos 1366x0
 sleep 1
-# Force audio to TV
+
+# Route audio to HDMI
 pactl set-card-profile alsa_card.pci-0000_00_1b.0 output:hdmi-stereo+input:analog-stereo
 pactl set-default-sink alsa_output.pci-0000_00_1b.0.hdmi-stereo
+
 for i in $(pactl list short sink-inputs | awk '{print $1}'); do
     pactl move-sink-input $i alsa_output.pci-0000_00_1b.0.hdmi-stereo
 done
 ```
 
-### 2. `toggle-audio.sh` (Aliased to `audio`)
-Instead of opening the GUI every time, this script instantly swaps audio between the laptop headphones and the TV.
+### 2. `toggle-audio.sh`
+Instantly toggles the default audio sink between the laptop headphones and the HDMI display without requiring a GUI interface.
 
 ```bash
 #!/bin/bash
@@ -95,12 +86,13 @@ else
     TARGET=\"$HDMI\"
 fi
 
-for i in $(pactl list short sink-inputs | awk '{print $1}'); do
+for i in $(pactl list short sink-inputs | awk '{print $1}\x27); do
     pactl move-sink-input \"$i\" \"$TARGET\" 2>/dev/null
 done
 ```
 
----
+## Performance Metrics
+Through the use of the lightweight XFCE desktop environment and specific hardware configurations, the system maintains idle CPU usage around 19% while running multiple applications (browser with active video playback, terminal emulator, and system monitors) on the extended display.
 
-## 🚀 The Performance Flex
-Despite running Kali Linux, Brave (with many tabs), YouTube (1080p), and a live wallpaper, the CPU idles around **19%**. Lightweight XFCE is the only reason this 14-year-old hardware survives without melting.
+## License
+MIT

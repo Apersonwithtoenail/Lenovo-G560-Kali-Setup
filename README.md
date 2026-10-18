@@ -29,6 +29,20 @@ if [ -n "$HDMI_SINK" ]; then
 fi
 ```
 
+
+### 5. The Audio Routing Battle
+**Problem:** The 2010 Lenovo G560 refused to wake up the HDMI audio chip. PipeWire only saw the laptop speakers, and forcing it via terminal caused a BadMatch error.
+**Fix:** Added `options snd-hda-intel model=auto` to `/etc/modprobe.d/alsa-base.conf` and rebooted to force the kernel to detect the HDMI audio pins.
+
+We also wrote `toggle-audio.sh` to instantly swap audio between your laptop headphones and the TV speakers.
+
+## 🎧 Audio Toggle Script
+When a video is playing, run this to instantly jump the audio between your laptop headphones and the TV speakers:
+
+```bash
+./toggle-audio.sh
+```
+
 ## Usage
 ```bash
 git clone https://github.com/Apersonwithtoenail/lenovo-g560-kali-setup.git

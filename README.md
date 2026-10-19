@@ -94,5 +94,11 @@ done
 ## Performance Metrics
 Through the use of the lightweight XFCE desktop environment and specific hardware configurations, the system maintains idle CPU usage around 19% while running multiple applications (browser with active video playback, terminal emulator, and system monitors) on the extended display.
 
+
+## Data Recovery Mission
+This laptop was used to perform a full data recovery of a dying 2016 iBall tablet SD card. It processed **26 GB of data (17,795 files)** using `adb``` over a USB 2.0 connection, surviving a power outage mid-transfer. 
+
+The custom script used for this is available at [adb-rescue-tool](https://github.com/Apersonwithtoenail/adb-rescue-tool).
+
 ## License
 MIT

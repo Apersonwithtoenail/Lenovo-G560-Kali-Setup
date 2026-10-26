@@ -100,5 +100,11 @@ This laptop was used to perform a full data recovery of a dying 2016 iBall table
 
 The custom script used for this is available at [adb-rescue-tool](https://github.com/Apersonwithtoenail/adb-rescue-tool).
 
+
+## Remote Access (Tailscale + SSH)
+This laptop is configured to run 24/7 as a headless server. I use Tailscale to create a secure, zero-config VPN and SSH to access it remotely from my Android phone (Termux) anywhere in the world.
+
+The setup guide is documented in the [tailscale-kali-remote](https://github.com/Apersonwithtoenail/tailscale-kali-remote) repo.
+
 ## License
 MIT
